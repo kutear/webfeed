@@ -5,9 +5,22 @@ import 'package:test/test.dart';
 import 'package:webfeed/domain/itunes/itunes_episode_type.dart';
 import 'package:webfeed/domain/itunes/itunes_type.dart';
 import 'package:webfeed/domain/syndication/syndication.dart';
+import 'package:webfeed/util/datetime.dart';
 import 'package:webfeed/webfeed.dart';
 
 void main() {
+  test('Time Zone Checker', ()  {
+    expect(parseDateTime('2022-11-18 00:00:00.000Z')?.toUtc(), DateTime.parse('2022-11-18 00:00:00.000Z').toUtc());
+    expect(parseDateTime('Tue, 29 Nov 2022 15:24:57 GMT')?.toUtc(), DateTime.parse('2022-11-29 15:24:57.000Z').toUtc());
+    expect(parseDateTime('Tue, 29 Nov 2022 08:00:00 +0800')?.toUtc(), DateTime.parse('2022-11-29 00:00:00.000Z').toUtc());
+    expect(parseDateTime('29 Nov 2022 08:00:00 +0800')?.toUtc(), DateTime.parse('2022-11-29 00:00:00.000Z').toUtc());
+    expect(parseDateTime('Tue, 29 Nov 2022 15:30:00 EDT')?.toUtc(), DateTime.parse('2022-11-29 19:30:00.000Z').toUtc());
+    expect(parseDateTime('Tue, 29 Nov 2022 14:30:00 EST')?.toUtc(), DateTime.parse('2022-11-29 19:30:00.000Z').toUtc());
+    expect(parseDateTime('29 Nov 2022 14:30:00 EST')?.toUtc(), DateTime.parse('2022-11-29 19:30:00.000Z').toUtc());
+    expect(parseDateTime('Tue, 29 Nov 2022 20:30:00 A')?.toUtc(), DateTime.parse('2022-11-29 19:30:00.000Z').toUtc());
+    expect(parseDateTime('Wed, 30 Nov 2022 07:30:00 M')?.toUtc(), DateTime.parse('2022-11-29 19:30:00.000Z').toUtc());
+  });
+
   test('parse Invalid.xml', () {
     var xmlString = File('test/xml/Invalid.xml').readAsStringSync();
 
@@ -72,8 +85,8 @@ void main() {
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit');
     expect(feed.items!.first.link, 'https://foo.bar.news/1');
     expect(feed.items!.first.guid, 'https://foo.bar.news/1?guid');
-    expect(feed.items!.first.pubDate,
-        DateTime(2018, 03, 26, 14)); //Mon, 26 Mar 2018 14:00:00 PDT
+    expect(feed.items!.first.pubDate?.toUtc(),
+        DateTime.utc(2018, 03, 26, 21)); //Mon, 26 Mar 2018 14:00:00 PDT
     expect(feed.items!.first.categories!.first.domain, 'news');
     expect(feed.items!.first.categories!.first.value, 'Lorem');
     expect(feed.items!.first.author, 'alice@foo.bar.news');
@@ -103,8 +116,8 @@ void main() {
     var item = feed.items!.first;
     expect(item.title, null);
     expect(item.link, 'http://www.foo.com');
-    expect(item.pubDate,
-        DateTime(2001, 08, 27, 16, 08, 56)); //Mon, 27 Aug 2001 16:08:56 PST
+    expect(item.pubDate?.toUtc(),
+        DateTime.utc(2001, 08, 28, 0, 08, 56)); //Mon, 27 Aug 2001 16:08:56 PST
 
     expect(item.media!.group!.contents!.length, 5);
     expect(item.media!.group!.credits!.length, 2);
